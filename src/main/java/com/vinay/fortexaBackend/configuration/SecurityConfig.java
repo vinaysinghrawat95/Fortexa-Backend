@@ -22,6 +22,7 @@ import java.util.List;
 
 public class SecurityConfig {
 
+//    private final JWTFilter jwtFilter;
     private final MyUserDetailsService myUserDetailsService;
 
     @Bean
@@ -46,6 +47,7 @@ public class SecurityConfig {
                         .anyRequest()
                         .authenticated())
                 .sessionManagement(session-> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+//                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
@@ -61,6 +63,8 @@ public class SecurityConfig {
         daoAuthenticationProvider.setUserDetailsService(myUserDetailsService);
         return daoAuthenticationProvider;
     }
+
+
 
 
 }

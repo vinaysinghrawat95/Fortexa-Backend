@@ -13,6 +13,7 @@ import java.util.Optional;
 @AllArgsConstructor
 public class UserService {
 
+    private final JWTService jwtService;
     private final UserRepo userRepo;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
@@ -37,6 +38,6 @@ public class UserService {
         user.setRemember(signupRequestDTO.getRemember());
 
         userRepo.save(user);
-        return "User created Successfully";
+        return jwtService.generateToken(signupRequestDTO.getUsername(), signupRequestDTO.getRemember());
     }
 }
