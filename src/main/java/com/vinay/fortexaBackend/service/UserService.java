@@ -1,9 +1,14 @@
 package com.vinay.fortexaBackend.service;
 
+import com.vinay.fortexaBackend.dto.LoginDTO;
 import com.vinay.fortexaBackend.dto.SignupRequestDTO;
 import com.vinay.fortexaBackend.entity.User;
 import com.vinay.fortexaBackend.repository.UserRepo;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +21,7 @@ public class UserService {
     private final JWTService jwtService;
     private final UserRepo userRepo;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final AuthenticationManager authenticationManager;
 
     public String signupUser(SignupRequestDTO signupRequestDTO){
 
@@ -36,6 +42,19 @@ public class UserService {
         user.setPassword(bCryptPasswordEncoder.encode(signupRequestDTO.getPassword()));
 
         userRepo.save(user);
-        return jwtService.generateToken(signupRequestDTO.getUsername(), signupRequestDTO.getRemember());
+        return jwtService.generateToken(signupRequestDTO.getUsername(), signupRequestDTO.getRememberMe());
+    }
+
+    public String loginUser(LoginDTO loginDTO) {
+        try{
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
+                    loginDTO.getUsername(),
+                    loginDTO.getPassword()
+                    )
+            );
+            return jwtService.generateToken(loginDTO.getUsername(), loginDTO.getRememberMe());
+        }catch(BadCredentialsException ex){
+            throw new RuntimeException("Invalid credential");
+        }
     }
 }
