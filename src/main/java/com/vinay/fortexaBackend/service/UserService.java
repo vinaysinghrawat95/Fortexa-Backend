@@ -31,11 +31,9 @@ public class UserService {
         User user = new User();
         System.out.println(signupRequestDTO.getUsername());
         System.out.println(signupRequestDTO.getPassword());
-        System.out.println(signupRequestDTO.getRemember());
 
         user.setUsername(signupRequestDTO.getUsername());
         user.setPassword(bCryptPasswordEncoder.encode(signupRequestDTO.getPassword()));
-        user.setRemember(signupRequestDTO.getRemember());
 
         userRepo.save(user);
         return jwtService.generateToken(signupRequestDTO.getUsername(), signupRequestDTO.getRemember());
