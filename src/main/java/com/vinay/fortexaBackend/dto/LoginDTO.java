@@ -16,7 +16,6 @@ public class LoginDTO {
     private String username;
 
     @NotBlank(message = "Password is Required")
-    @Size(min = 6, message = "Password must be at least 6 character")
     private String password;
 
     private Boolean rememberMe;
