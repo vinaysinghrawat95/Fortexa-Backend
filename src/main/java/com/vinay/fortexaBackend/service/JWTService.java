@@ -1,5 +1,6 @@
 package com.vinay.fortexaBackend.service;
 
+import com.vinay.fortexaBackend.entity.Role;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -20,8 +21,9 @@ public class JWTService {
     @Value("${jwt.secret}")
     private String secretKey;
 
-    public String generateToken(String name, Boolean remember){
+    public String generateToken(String name, Boolean remember, Role role){
         Map<String, Object> claims = new HashMap<>();
+        claims.put("role", role.name());
 
         long expiry;
         if(Boolean.TRUE.equals(remember)){
@@ -75,5 +77,9 @@ public class JWTService {
 
     private Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
+    }
+
+    public String extractRole(String token){
+        return extractAllClaims(token).get("role", String.class);
     }
 }
