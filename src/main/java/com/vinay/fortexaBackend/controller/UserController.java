@@ -9,6 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
+
 @RestController
 @AllArgsConstructor
 @RequestMapping("/auth")
@@ -31,4 +33,9 @@ public class UserController {
         return new ResponseEntity<>(userService.loginUser(loginDTO), HttpStatus.OK);
     }
 
+    @DeleteMapping("/account")
+    public ResponseEntity<String> deleteUser(Principal principal){
+       userService.deleteUser(principal.getName());
+       return new ResponseEntity<>("Account deleted successfully", HttpStatus.OK);
+    }
 }

@@ -23,7 +23,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<Map<String, String>> handleBadCredential(BadCredentialsException badCredentialsException){
         return ResponseEntity
-                .status(HttpStatus.CONFLICT)
+                .status(HttpStatus.BAD_REQUEST)
                 .body(Map.of("message", "Invalid email or password",
                         "type", "error"));
     }
