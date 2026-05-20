@@ -1,11 +1,8 @@
 package com.vinay.fortexaBackend.entity;
 
-import lombok.AllArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-
-import javax.management.relation.Relation;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -56,7 +53,7 @@ public class UserPrincipal implements UserDetails {
         return true;
     }
 
-    public Relation getUser() {
-        return null;
+    public User getUser() {
+        return user;
     }
 }

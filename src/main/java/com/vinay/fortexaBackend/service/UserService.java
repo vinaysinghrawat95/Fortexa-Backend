@@ -24,7 +24,6 @@ public class UserService {
     private final UserRepo userRepo;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final AuthenticationManager authenticationManager;
-    private final Authentication authentication;
 
     public String signupUser(SignupRequestDTO signupRequestDTO){
 
@@ -49,7 +48,7 @@ public class UserService {
         User user = new User();
         user.setUsername(username);
         user.setPassword(bCryptPasswordEncoder.encode(signupRequestDTO.getPassword()));
-        user.setRole(Role.ROLE_ADMIN);
+        user.setRole(Role.ROLE_USER);
 
         userRepo.save(user);
         return jwtService.generateToken(username, signupRequestDTO.getRememberMe(), Role.ROLE_USER);
@@ -57,13 +56,13 @@ public class UserService {
 
     public String loginUser(LoginDTO loginDTO) {
         try{
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
+            Authentication auth = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
                     loginDTO.getUsername(),
                     loginDTO.getPassword()
                     )
             );
 
-            UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+            UserPrincipal userPrincipal = (UserPrincipal) auth.getPrincipal();
             return jwtService.generateToken(loginDTO.getUsername(), loginDTO.getRememberMe(), userPrincipal.getUser().getRole());
         }catch(BadCredentialsException ex){
             throw new RuntimeException("Invalid credential");
