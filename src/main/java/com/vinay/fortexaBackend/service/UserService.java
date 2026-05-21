@@ -5,6 +5,8 @@ import com.vinay.fortexaBackend.dto.SignupRequestDTO;
 import com.vinay.fortexaBackend.entity.Role;
 import com.vinay.fortexaBackend.entity.User;
 import com.vinay.fortexaBackend.entity.UserPrincipal;
+import com.vinay.fortexaBackend.exception.AppException;
+import com.vinay.fortexaBackend.exception.ErrorCode;
 import com.vinay.fortexaBackend.repository.UserRepo;
 import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -27,19 +29,19 @@ public class UserService {
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final AuthenticationManager authenticationManager;
 
-    private final static int MAX_ATTEMPTS = 5   ;
-    private final static  int LOCK_DURATION_MINUTES = 15;
+    private static final int MAX_ATTEMPTS = 5   ;
+    private static final int LOCK_DURATION_MINUTES = 15;
 
     public String signupUser(SignupRequestDTO signupRequestDTO){
 
         if(signupRequestDTO == null){
-            throw new RuntimeException("Invalid signup request");
+            throw new AppException(ErrorCode.INVALID_SIGNUP_REQUEST);
         }
 
         String username = signupRequestDTO.getUsername();
 
-        if(username == null){
-            throw new RuntimeException("Username is required");
+        if(username == null || username.trim().isEmpty()){
+            throw new AppException(ErrorCode.USERNAME_REQUIRED);
         }
 
         username = username.trim().toLowerCase();
@@ -47,7 +49,7 @@ public class UserService {
         Optional<User> exist = userRepo.findByUsernameAndDeletedAtIsNull(username);
 
         if(exist.isPresent()){
-            throw new RuntimeException("User already exist");
+            throw new AppException(ErrorCode.USER_ALREADY_EXISTS);
         }
 
         User user = new User();
@@ -63,7 +65,7 @@ public class UserService {
     public String loginUser(LoginDTO loginDTO) {
 
         User user = userRepo.findByUsernameAndDeletedAtIsNull(loginDTO.getUsername().trim().toLowerCase())
-                .orElseThrow(()-> new RuntimeException("User not found"));
+                .orElseThrow(()-> new AppException(ErrorCode.INVALID_CREDENTIALS));
 
         if(!user.isAccountNonLocked()){
             long minutesPassed = ChronoUnit.MINUTES.between(user.getLockTime(), LocalDateTime.now());
@@ -74,7 +76,7 @@ public class UserService {
                 userRepo.save(user);
             }else {
                 long remaining = LOCK_DURATION_MINUTES - minutesPassed;
-                throw new RuntimeException("Account locked, Try after "+ remaining + " minutes");
+                throw new AppException(ErrorCode.ACCOUNT_LOCKED,"Account locked, Try again after "+ remaining + " minutes");
             }
         }
 
@@ -89,6 +91,7 @@ public class UserService {
             userRepo.save(user);
             UserPrincipal userPrincipal = (UserPrincipal) auth.getPrincipal();
             return jwtService.generateToken(loginDTO.getUsername(), loginDTO.getRememberMe(), userPrincipal.getUser().getRole());
+
         }catch(BadCredentialsException ex){
             int attempts = user.getFailedAttempts() + 1;
             user.setFailedAttempts(attempts);
@@ -97,21 +100,17 @@ public class UserService {
                 user.setAccountNonLocked(false);
                 user.setLockTime(LocalDateTime.now());
                 userRepo.save(user);
-                throw new RuntimeException("Account locked due to 5 attempts, Try after 15 minutes");
+                throw new AppException(ErrorCode.ACCOUNT_LOCKED,"Account locked due to 5 attempts, Try after 15 minutes");
             }
 
             userRepo.save(user);
-            throw new RuntimeException("Invalid credential. " + (MAX_ATTEMPTS - attempts) + " attempts remaining");
+            throw new AppException(ErrorCode.INVALID_CREDENTIALS,"Invalid credentials. " + (MAX_ATTEMPTS - attempts) + " attempts remaining");
         }
     }
 
     public void deleteUser(String username){
         User user = userRepo.findByUsernameAndDeletedAtIsNull(username)
-                .orElseThrow(()-> new RuntimeException("User not found"));
-
-        if(user.getDeletedAt() != null){
-            throw new RuntimeException("User already deleted");
-        }
+                .orElseThrow(()-> new AppException(ErrorCode.USER_NOT_FOUND));
 
         user.setDeletedAt(LocalDateTime.now());
         userRepo.save(user);
