@@ -8,7 +8,6 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.security.Principal;
 
 @RestController
@@ -27,6 +26,7 @@ public class UserController {
     public ResponseEntity<String> signupUser(@Valid @RequestBody SignupRequestDTO signupRequestDTO){
         return new ResponseEntity<>(userService.signupUser(signupRequestDTO), HttpStatus.CREATED);
     }
+
 
     @PostMapping("/login")
     public ResponseEntity<String> loginUser(@Valid @RequestBody LoginDTO loginDTO){
